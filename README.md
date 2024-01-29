@@ -14,6 +14,7 @@
 | major         | VARCHAR(256)  | 专业和班级（可拆分成专业和班级两个字段）  |
 | class_name    | varchar(256） | 班级                                      |
 | wills         | VARCHAR(512)  | 志愿信息                                  |
+| role          | tinyint(1)    | 角色 0: 学生  1: 管理员                ｜
 | is_dispensing | bit(1)        | 是否服从调剂（使用 BOOLEAN 类型表示开关） |
 | deletion_time | datetime      | 注销时间                                  |
 | create_time   | datetime      | 创建时间                                  |
