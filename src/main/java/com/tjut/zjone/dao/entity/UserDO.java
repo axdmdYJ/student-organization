@@ -74,6 +74,11 @@ public class UserDO implements Serializable {
     private String wills;
 
     /**
+     * 角色 0: 学生 1： 管理员
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Integer role;
+    /**
      * 同意调剂 0:同意 1:不同意
      */
     private Boolean isDispensing;

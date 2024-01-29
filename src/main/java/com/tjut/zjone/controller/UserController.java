@@ -7,12 +7,13 @@ import com.tjut.zjone.dto.req.UserLoginReqDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
+import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 学生控制层
+ * 控制层
  */
 
 @RestController
@@ -30,13 +31,23 @@ public class UserController {
     }
 
     /**
-     * 登陆
+     * 学生登陆
      * @param requestParam 学生登陆参数
      */
     @PostMapping("/login/c")
-    public Result<String> login(@RequestBody UserLoginReqDTO requestParam){
-        String token = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
-        return Results.success(token);
+    public Result<UserLoginRespDTO> userLogin(@RequestBody UserLoginReqDTO requestParam){
+        UserLoginRespDTO userLoginRespDTO = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
+        return Results.success(userLoginRespDTO);
+    }
+
+    /**
+     * 管理员登陆
+     * @param requestParam 管理员登陆参数
+     */
+    @PostMapping("/login/b")
+    public Result<UserLoginRespDTO> AdminLogin(@RequestBody UserLoginReqDTO requestParam){
+        UserLoginRespDTO userLoginRespDTO = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
+        return Results.success(userLoginRespDTO);
     }
 
     @PutMapping("/registration-information")

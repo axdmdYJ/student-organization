@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
+import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -25,7 +26,7 @@ public interface UserService extends IService<UserDO> {
      * @param password 密码
      * @return token
      */
-    String userLogin(String username, String password);
+    UserLoginRespDTO userLogin(String username, String password);
 
     /**
      * 提交报名信息

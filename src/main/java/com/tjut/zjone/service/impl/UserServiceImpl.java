@@ -14,6 +14,7 @@ import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
+import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
 import com.tjut.zjone.util.FormatVerifyUtil;
@@ -65,7 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     }
 
     @Override
-    public String userLogin(String username, String password) {
+    public UserLoginRespDTO userLogin(String username, String password) {
         //1. 格式校验
         formatCheck(username, password);
         // 2. 加密
@@ -87,7 +88,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         String token = UUID.randomUUID().toString();
         stringRedisTemplate.opsForValue().set("login_"+token , JSON.toJSONString(user));
         stringRedisTemplate.expire("login_"+token,30L, TimeUnit.MINUTES);
-        return token;
+        UserLoginRespDTO userLoginRespDTO = new UserLoginRespDTO(token);
+        return userLoginRespDTO;
     }
 
     @Override

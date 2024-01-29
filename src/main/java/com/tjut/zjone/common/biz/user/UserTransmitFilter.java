@@ -30,7 +30,8 @@ public class UserTransmitFilter implements Filter {
 
     private final static List<String> IGNORE_URI = Lists.newArrayList(
         "/register/c",
-            "/login/c"
+            "/login/c",
+            "/login/b"
     );
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
