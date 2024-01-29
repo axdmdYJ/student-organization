@@ -1,5 +1,7 @@
 package com.tjut.zjone.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.dao.entity.UserDO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tjut.zjone.dto.req.AdminUpdateDTO;
@@ -9,6 +11,7 @@ import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
+import com.tjut.zjone.dto.resp.UserPageRespDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -44,4 +47,6 @@ public interface UserService extends IService<UserDO> {
     void adminRest(UserPwdResetReqDTO requestParam);
 
     AdminGetInfoRespDTO adminGetInfo();
+
+    Result<IPage<UserPageRespDTO>> userPage(Integer pageNum, Integer pageSize, String keyword);
 }

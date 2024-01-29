@@ -5,11 +5,17 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tjut.zjone.common.biz.user.UserContext;
 import com.tjut.zjone.common.convention.exception.ClientException;
 import com.tjut.zjone.common.convention.exception.ServiceException;
+import com.tjut.zjone.common.convention.result.Result;
+import com.tjut.zjone.common.convention.result.Results;
 import com.tjut.zjone.common.enums.RoleEnum;
 import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
@@ -19,6 +25,7 @@ import com.tjut.zjone.dto.req.UserPwdResetReqDTO;
 import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
+import com.tjut.zjone.dto.resp.UserPageRespDTO;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
 import com.tjut.zjone.util.FormatVerifyUtil;
@@ -204,6 +211,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         }
         respDTO.setUsername(UserContext.getUsername());
         return respDTO;
+    }
+
+    @Override
+    public Result<IPage<UserPageRespDTO>> userPage(Integer pageNum, Integer pageSize, String keyword) {
+        // 1. 构建分页对象
+        Page<UserDO> userPage = new Page<>(pageNum, pageSize);
+
+        // 2. 构建查询条件
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getDelFlag, 0)
+                .like(StringUtils.isNotBlank(keyword), UserDO::getName, keyword)
+                .or()
+                .like(StringUtils.isNotBlank(keyword), UserDO::getStudentID, keyword);
+        // 3. 分页处理
+        IPage<UserDO> page = baseMapper.selectPage(userPage, queryWrapper);
+        return Results.success(page.convert(each -> BeanUtil.toBean(each, UserPageRespDTO.class)));
     }
 
 

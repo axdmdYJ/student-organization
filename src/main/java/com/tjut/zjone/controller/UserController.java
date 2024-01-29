@@ -1,12 +1,15 @@
 package com.tjut.zjone.controller;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.common.convention.result.Results;
+import com.tjut.zjone.dao.entity.UserDO;
 import com.tjut.zjone.dto.req.*;
 import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
+import com.tjut.zjone.dto.resp.UserPageRespDTO;
 import com.tjut.zjone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -81,6 +84,20 @@ public class UserController {
         return Results.success(userService.getInfo());
     }
 
+    /**
+     * 获取学生报名信息
+     * @param pageNum 第几页
+     * @param pageSize 每页容量
+     * @param keyword 关键字
+     */
+    @GetMapping("/registration-information/list")
+    public Result<IPage<UserPageRespDTO>> userPage(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) String keyword
+    ){
+        return userService.userPage(pageNum, pageSize, keyword);
+    }
     /**
      * 管理员重置用户密码
      * @param requestParam 学生重置信息参数
