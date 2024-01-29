@@ -4,6 +4,7 @@ package com.tjut.zjone.controller;
 import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.common.convention.result.Results;
 import com.tjut.zjone.dto.req.*;
+import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
@@ -20,7 +21,7 @@ public class UserController {
 
     private final UserService userService;
     /**
-     * 注册
+     * 学生注册
      */
     @PostMapping("/register/c")
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam){
@@ -43,12 +44,20 @@ public class UserController {
      * @param requestParam 管理员登陆参数
      */
     @PostMapping("/login/b")
-    public Result<UserLoginRespDTO> AdminLogin(@RequestBody UserLoginReqDTO requestParam){
+    public Result<UserLoginRespDTO> adminLogin(@RequestBody UserLoginReqDTO requestParam){
         UserLoginRespDTO userLoginRespDTO = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
         return Results.success(userLoginRespDTO);
     }
 
+    @GetMapping("/user/info")
+    public Result<AdminGetInfoRespDTO> adminGet(){
+        return Results.success(userService.adminGetInfo());
+    }
 
+    /**
+     * 管理员修改学生信息
+     * @param requestParam 学生新信息参数
+     */
     @PutMapping("/registration-information/admin")
     public Result<Void> adminUpdate(@RequestBody AdminUpdateDTO requestParam){
         userService.updateStudent(requestParam);
@@ -64,11 +73,18 @@ public class UserController {
         return Results.success();
     }
 
+    /**
+     * 学生获得自己信息
+     */
     @GetMapping("/registration-information")
     public Result<UserGetInfoRespDTO> userGet(){
         return Results.success(userService.getInfo());
     }
 
+    /**
+     * 管理员重置用户密码
+     * @param requestParam 学生重置信息参数
+     */
     @PostMapping("/password/reset")
     public Result<Void>  adminReset(@RequestBody UserPwdResetReqDTO requestParam){
         userService.adminRest(requestParam);

@@ -6,6 +6,7 @@ import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserPwdResetReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
+import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,4 +42,6 @@ public interface UserService extends IService<UserDO> {
     void updateStudent(AdminUpdateDTO requestParam);
 
     void adminRest(UserPwdResetReqDTO requestParam);
+
+    AdminGetInfoRespDTO adminGetInfo();
 }

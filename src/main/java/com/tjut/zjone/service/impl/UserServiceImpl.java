@@ -16,6 +16,7 @@ import com.tjut.zjone.dao.entity.UserDO;
 import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserPwdResetReqDTO;
+import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
@@ -31,6 +32,9 @@ import org.springframework.util.DigestUtils;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.tjut.zjone.common.constant.RoleConstant.B_ADMIN;
+import static com.tjut.zjone.common.constant.RoleConstant.C_STUDENT;
 
 /**
 * @description 针对表【t_user】的数据库操作Service实现
@@ -184,6 +188,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         } catch (DuplicateKeyException e) {
             throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
         }
+    }
+
+    @Override
+    public AdminGetInfoRespDTO adminGetInfo() {
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getUsername, UserContext.getUsername());
+        UserDO user = baseMapper.selectOne(queryWrapper);
+        AdminGetInfoRespDTO respDTO = new AdminGetInfoRespDTO();
+        if (user.getRole().equals(RoleEnum.ADMIN.role)){
+            respDTO.setRole(B_ADMIN);
+        }
+        if (!user.getRole().equals(RoleEnum.ADMIN.role)){
+            respDTO.setRole(C_STUDENT);
+        }
+        respDTO.setUsername(UserContext.getUsername());
+        return respDTO;
     }
 
 
