@@ -37,11 +37,6 @@ public class Result<T> implements Serializable {
      */
     private T data;
 
-    /**
-     * 请求ID
-     */
-    private String requestId;
-
     public boolean isSuccess() {
         return SUCCESS_CODE.equals(code);
     }
