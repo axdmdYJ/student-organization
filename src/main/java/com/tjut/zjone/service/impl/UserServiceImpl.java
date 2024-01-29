@@ -15,6 +15,7 @@ import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
 import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
+import com.tjut.zjone.dto.req.UserPwdResetReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
@@ -147,6 +148,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
                 .isDispensing(requestParam.getIsDispensing())
                 .phone(requestParam.getPhone())
                 .wills(JSON.toJSONString(requestParam.getWills()))
+                .build();
+        try {
+            baseMapper.update(user,queryWrapper);
+        } catch (DuplicateKeyException e) {
+            throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
+        }
+    }
+
+    @Override
+    public void adminRest(UserPwdResetReqDTO requestParam) {
+        // 1. 用户权限校验
+        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
+        }
+        // 2. 对新密码进行验证
+        // 2.1 长度校验
+        if (StrUtil.isEmpty(requestParam.getNewPassword())) {
+            throw new ClientException(UserErrorCodeEnum.USER_PARAM_NULL);
+        }
+
+        if (requestParam.getNewPassword().length() < 6) {
+            throw new ClientException(UserErrorCodeEnum.USER_PASSWORD_LENGTH_ERROR);
+        }
+        //2.2 加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + requestParam.getNewPassword()).getBytes());
+        // 3. 根据学号查询用户
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getStudentID, requestParam.getStudentID());
+        UserDO user = UserDO.builder()
+                .password(encryptPassword)
                 .build();
         try {
             baseMapper.update(user,queryWrapper);

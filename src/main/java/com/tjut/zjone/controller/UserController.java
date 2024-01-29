@@ -3,10 +3,7 @@ package com.tjut.zjone.controller;
 
 import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.common.convention.result.Results;
-import com.tjut.zjone.dto.req.AdminUpdateDTO;
-import com.tjut.zjone.dto.req.UserLoginReqDTO;
-import com.tjut.zjone.dto.req.UserPutRegReqDTO;
-import com.tjut.zjone.dto.req.UserRegisterReqDTO;
+import com.tjut.zjone.dto.req.*;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.service.UserService;
@@ -70,5 +67,11 @@ public class UserController {
     @GetMapping("/registration-information")
     public Result<UserGetInfoRespDTO> userGet(){
         return Results.success(userService.getInfo());
+    }
+
+    @PostMapping("/password/reset")
+    public Result<Void>  adminReset(@RequestBody UserPwdResetReqDTO requestParam){
+        userService.adminRest(requestParam);
+        return Results.success();
     }
 }
