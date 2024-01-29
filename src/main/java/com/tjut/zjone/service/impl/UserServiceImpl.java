@@ -221,6 +221,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         // 2. 构建查询条件
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getDelFlag, 0)
+                .eq(UserDO::getRole, 0)
                 .like(StringUtils.isNotBlank(keyword), UserDO::getName, keyword)
                 .or()
                 .like(StringUtils.isNotBlank(keyword), UserDO::getStudentID, keyword);
