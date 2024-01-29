@@ -14,7 +14,7 @@
 | major         | VARCHAR(256)  | 专业和班级  |
 | class_name    | varchar(256） | 班级                                      |
 | wills         | VARCHAR(512)  | 志愿信息                                  |
-| role          | tinyint(1)    | 角色 0: 学生  1: 管理员                ｜
+| role          | tinyint(1)    | 角色 0: 学生  1: 管理员                    ｜
 | is_dispensing | bit(1)        | 是否服从调剂                                 |
 | deletion_time | datetime      | 注销时间                                  |
 | create_time   | datetime      | 创建时间                                  |
