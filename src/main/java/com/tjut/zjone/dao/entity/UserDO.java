@@ -30,7 +30,8 @@ public class UserDO implements Serializable {
     /**
      * 学生学号
      */
-    private String studentId;
+    @TableField("student_id")
+    private String studentID;
 
     /**
      * 真实姓名
@@ -70,12 +71,12 @@ public class UserDO implements Serializable {
     /**
      * 志愿
      */
-    private List<WillInfo> wills;
+    private String wills;
 
     /**
      * 同意调剂 0:同意 1:不同意
      */
-    private Integer isDispensing;
+    private Boolean isDispensing;
 
     /**
      * 注销时间戳
@@ -85,7 +86,7 @@ public class UserDO implements Serializable {
     /**
      * 创建时间
      */
-    @TableField( fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
     /**

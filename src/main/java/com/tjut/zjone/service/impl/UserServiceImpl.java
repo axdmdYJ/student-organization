@@ -5,16 +5,18 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tjut.zjone.common.biz.user.UserContext;
 import com.tjut.zjone.common.convention.exception.ClientException;
 import com.tjut.zjone.common.convention.exception.ServiceException;
 import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
-import com.tjut.zjone.dto.req.UserRegisterReqDTO;
+import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
+import com.tjut.zjone.util.FormatVerifyUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -82,10 +84,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         }
         //3. 缓存处理，返回token
         String token = UUID.randomUUID().toString();
-        stringRedisTemplate.opsForHash().put("login_"+username, token, JSON.toJSONString(user));
-        stringRedisTemplate.expire("login_"+username,30L, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set("login_"+token , JSON.toJSONString(user));
+        stringRedisTemplate.expire("login_"+token,30L, TimeUnit.MINUTES);
         return token;
     }
+
+    @Override
+    public void putInformation(UserPutRegReqDTO requestParam) {
+        // 1.验证格式,格式错误，抛出对应异常
+        InformationFormatVerify(requestParam);
+        // 2. 获取学生信息
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getUsername, UserContext.getUsername());
+        UserDO user = UserDO.builder()
+                .studentID(requestParam.getStudentID())
+                .qq(requestParam.getQq())
+                .major(requestParam.getMajor())
+                .name(requestParam.getName())
+                .className(requestParam.getClassName())
+                .isDispensing(requestParam.getIsDispensing())
+                .phone(requestParam.getPhone())
+                .wills(JSON.toJSONString(requestParam.getWills()))
+                .build();
+        try {
+            baseMapper.update(user,queryWrapper);
+        } catch (DuplicateKeyException e) {
+            throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
+        }
+    }
+
 
     private static void formatCheck(String username, String password) {
         // 1. 校验
@@ -104,6 +131,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         Matcher matcher = Pattern.compile(validPattern).matcher(username);
         if (matcher.find()) {
             throw new ClientException(UserErrorCodeEnum.USER_NAME_PATTERN_ERROR);
+        }
+    }
+    private static void InformationFormatVerify(UserPutRegReqDTO requestParam){
+        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_ID_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidName(requestParam.getName())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_NAME_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_QQ_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_PHONE_ERROR);
         }
     }
 }

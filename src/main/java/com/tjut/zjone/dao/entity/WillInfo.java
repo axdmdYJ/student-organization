@@ -1,9 +1,12 @@
 package com.tjut.zjone.dao.entity;
 
 
+import lombok.Data;
+
 /**
  * 学生志愿信息
  */
+@Data
 public class WillInfo {
     /**
      * 组织
