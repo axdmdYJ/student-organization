@@ -3,6 +3,7 @@ package com.tjut.zjone.controller;
 
 import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.common.convention.result.Results;
+import com.tjut.zjone.dto.req.UserLoginReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 import com.tjut.zjone.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,11 @@ public class UserController {
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam){
         userService.userRegister(requestParam.getUsername(), requestParam.getPassword());
         return  Results.success();
+    }
+
+    @PostMapping("/login/c")
+    public Result<String> login(@RequestBody UserLoginReqDTO requestParam){
+        String token = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
+        return Results.success(token);
     }
 }

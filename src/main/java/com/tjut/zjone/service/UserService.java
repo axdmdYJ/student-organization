@@ -10,4 +10,6 @@ import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 public interface UserService extends IService<UserDO> {
 
     void userRegister(String username, String password);
+
+    String userLogin(String username, String password);
 }

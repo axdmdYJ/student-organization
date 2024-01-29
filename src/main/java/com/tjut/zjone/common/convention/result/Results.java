@@ -26,6 +26,7 @@ public final class Results {
     public static <T> Result<T> success(T data) {
         return new Result<T>()
                 .setCode(Result.SUCCESS_CODE)
+                .setMessage(Result.SUCCESS_MESSAGE)
                 .setData(data);
     }
 
