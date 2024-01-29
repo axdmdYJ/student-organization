@@ -10,8 +10,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tjut.zjone.common.biz.user.UserContext;
 import com.tjut.zjone.common.convention.exception.ClientException;
 import com.tjut.zjone.common.convention.exception.ServiceException;
+import com.tjut.zjone.common.enums.RoleEnum;
 import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
+import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
@@ -95,7 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     @Override
     public void putInformation(UserPutRegReqDTO requestParam) {
         // 1.验证格式,格式错误，抛出对应异常
-        InformationFormatVerify(requestParam);
+        UserReqInformationFormatVerify(requestParam);
         // 2. 获取学生信息
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, UserContext.getUsername());
@@ -125,6 +127,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         return BeanUtil.copyProperties(user, UserGetInfoRespDTO.class);
     }
 
+    @Override
+    public void updateStudent(AdminUpdateDTO requestParam) {
+        //1. 鉴权
+        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
+        }
+        //2. 验证格式,格式错误，抛出对应异常
+        AdminReqInformationFormatVerify(requestParam);
+        //3. 通过学号获取学生信息
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getStudentID, requestParam.getStudentID());
+        UserDO user = UserDO.builder()
+                .studentID(requestParam.getStudentID())
+                .qq(requestParam.getQq())
+                .major(requestParam.getMajor())
+                .name(requestParam.getName())
+                .className(requestParam.getClassName())
+                .isDispensing(requestParam.getIsDispensing())
+                .phone(requestParam.getPhone())
+                .wills(JSON.toJSONString(requestParam.getWills()))
+                .build();
+        try {
+            baseMapper.update(user,queryWrapper);
+        } catch (DuplicateKeyException e) {
+            throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
+        }
+    }
+
 
     private static void formatCheck(String username, String password) {
         // 1. 校验
@@ -145,7 +175,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
             throw new ClientException(UserErrorCodeEnum.USER_NAME_PATTERN_ERROR);
         }
     }
-    private static void InformationFormatVerify(UserPutRegReqDTO requestParam){
+    private static void UserReqInformationFormatVerify(UserPutRegReqDTO requestParam){
+        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_ID_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidName(requestParam.getName())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_NAME_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_QQ_ERROR);
+        }
+        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_PHONE_ERROR);
+        }
+    }
+
+    private static void AdminReqInformationFormatVerify(AdminUpdateDTO requestParam){
         if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())){
             throw new ClientException(UserErrorCodeEnum.STUDENT_ID_ERROR);
         }

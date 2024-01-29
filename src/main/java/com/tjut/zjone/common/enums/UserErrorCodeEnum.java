@@ -21,6 +21,7 @@ public enum UserErrorCodeEnum implements IErrorCode {
     STUDENT_NAME_ERROR("B000210", "姓名格式错误"),
     STUDENT_QQ_ERROR("B000210", "qq格式错误"),
     STUDENT_PHONE_ERROR("B000210", "手机号格式错误"),
+    STUDENT_NO_AUTH("B000211", "学生没有修改权限"),
 
             ;
 

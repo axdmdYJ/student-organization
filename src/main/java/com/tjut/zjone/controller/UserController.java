@@ -3,6 +3,7 @@ package com.tjut.zjone.controller;
 
 import com.tjut.zjone.common.convention.result.Result;
 import com.tjut.zjone.common.convention.result.Results;
+import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserLoginReqDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
@@ -50,14 +51,24 @@ public class UserController {
         return Results.success(userLoginRespDTO);
     }
 
+
+    @PutMapping("/registration-information/admin")
+    public Result<Void> adminUpdate(@RequestBody AdminUpdateDTO requestParam){
+        userService.updateStudent(requestParam);
+        return Results.success();
+    }
+    /**
+     * 学生报名信息提交
+     * @param requestParam 学生报名提交参数
+     */
     @PutMapping("/registration-information")
-    public Result<Void> put(@RequestBody UserPutRegReqDTO requestParam){
+    public Result<Void> userPut(@RequestBody UserPutRegReqDTO requestParam){
         userService.putInformation(requestParam);
         return Results.success();
     }
 
     @GetMapping("/registration-information")
-    public Result<UserGetInfoRespDTO> get(){
+    public Result<UserGetInfoRespDTO> userGet(){
         return Results.success(userService.getInfo());
     }
 }

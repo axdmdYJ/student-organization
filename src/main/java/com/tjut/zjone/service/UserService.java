@@ -2,6 +2,7 @@ package com.tjut.zjone.service;
 
 import com.tjut.zjone.dao.entity.UserDO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
@@ -35,4 +36,6 @@ public interface UserService extends IService<UserDO> {
     void putInformation(UserPutRegReqDTO requestParam);
 
     UserGetInfoRespDTO getInfo();
+
+    void updateStudent(AdminUpdateDTO requestParam);
 }

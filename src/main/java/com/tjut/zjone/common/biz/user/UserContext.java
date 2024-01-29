@@ -26,6 +26,16 @@ public final class UserContext {
         UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
         return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getUsername).orElse(null);
     }
+
+    /**
+     * 获取上下文中用户角色
+     *
+     * @return 用户角色
+     */
+    public static Integer getRole() {
+        UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
+        return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getRole).orElse(null);
+    }
     /**
      * 清理用户上下文
      */

@@ -19,4 +19,9 @@ public class UserInfoDTO {
      */
     private String username;
 
+    /**
+     * 用户角色 0: 学生 1：管理员
+     */
+    private Integer role;
+
 }
