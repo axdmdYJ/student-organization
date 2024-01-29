@@ -13,6 +13,7 @@ import com.tjut.zjone.common.convention.exception.ServiceException;
 import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
+import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
 import com.tjut.zjone.util.FormatVerifyUtil;
@@ -111,6 +112,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         } catch (DuplicateKeyException e) {
             throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
         }
+    }
+
+    @Override
+    public UserGetInfoRespDTO getInfo() {
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+                .eq(UserDO::getUsername, UserContext.getUsername());
+        UserDO user = baseMapper.selectOne(queryWrapper);
+
+        return BeanUtil.copyProperties(user, UserGetInfoRespDTO.class);
     }
 
 

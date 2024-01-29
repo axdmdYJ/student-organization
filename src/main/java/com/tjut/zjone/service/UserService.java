@@ -4,6 +4,7 @@ import com.tjut.zjone.dao.entity.UserDO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
+import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -31,4 +32,6 @@ public interface UserService extends IService<UserDO> {
      * @param requestParam 报名信息
      */
     void putInformation(UserPutRegReqDTO requestParam);
+
+    UserGetInfoRespDTO getInfo();
 }

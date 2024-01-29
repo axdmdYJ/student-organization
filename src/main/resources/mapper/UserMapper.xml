@@ -6,7 +6,7 @@
 
     <resultMap id="BaseResultMap" type="com.tjut.zjone.dao.entity.UserDO">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="studentId" column="student_id" jdbcType="VARCHAR"/>
+            <result property="studentID" column="student_id" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="username" column="username" jdbcType="VARCHAR"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>

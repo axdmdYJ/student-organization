@@ -6,13 +6,10 @@ import com.tjut.zjone.common.convention.result.Results;
 import com.tjut.zjone.dto.req.UserLoginReqDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserRegisterReqDTO;
+import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 学生控制层
@@ -32,6 +29,10 @@ public class UserController {
         return  Results.success();
     }
 
+    /**
+     * 登陆
+     * @param requestParam 学生登陆参数
+     */
     @PostMapping("/login/c")
     public Result<String> login(@RequestBody UserLoginReqDTO requestParam){
         String token = userService.userLogin(requestParam.getUsername(), requestParam.getPassword());
@@ -39,8 +40,13 @@ public class UserController {
     }
 
     @PutMapping("/registration-information")
-    public Result<Void> putInformation(@RequestBody UserPutRegReqDTO requestParam){
+    public Result<Void> put(@RequestBody UserPutRegReqDTO requestParam){
         userService.putInformation(requestParam);
         return Results.success();
+    }
+
+    @GetMapping("/registration-information")
+    public Result<UserGetInfoRespDTO> get(){
+        return Results.success(userService.getInfo());
     }
 }
