@@ -11,7 +11,7 @@
 | password      | VARCHAR(256)  | 密码（加密存储）                          |
 | qq            | VARCHAR(256)  | QQ 号                                     |
 | phone         | VARCHAR(256)  | 手机号                                    |
-| major         | VARCHAR(256)  | 专业和班级（可拆分成专业和班级两个字段）  |
+| major         | VARCHAR(256)  | 专业和班级  |
 | class_name    | varchar(256） | 班级                                      |
 | wills         | VARCHAR(512)  | 志愿信息                                  |
 | role          | tinyint(1)    | 角色 0: 学生  1: 管理员                ｜
