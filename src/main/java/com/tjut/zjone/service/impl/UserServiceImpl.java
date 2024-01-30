@@ -215,10 +215,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
 
     @Override
     public Result<IPage<UserPageRespDTO>> userPage(Integer pageNum, Integer pageSize, String keyword) {
-        // 1. 构建分页对象
+        // 1. 用户权限校验
+        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+            throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
+        }
+        // 2. 构建分页对象
         Page<UserDO> userPage = new Page<>(pageNum, pageSize);
 
-        // 2. 构建查询条件
+        // 3. 构建查询条件
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getDelFlag, 0)
                 .eq(UserDO::getRole, 0)
