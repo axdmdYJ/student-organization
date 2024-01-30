@@ -12,9 +12,9 @@ Redis
 
 ## 目录结构
 
-```json
 student-organization
     ├── README.md
+    ├── doc
     ├── pom.xml
     ├── src
     │   ├── main
@@ -88,7 +88,6 @@ student-organization
     │                   └── zjone
     │                       └── StudentOrganizationApplicationTests.java
 
-```
 
 ## 数据库表设计
 
