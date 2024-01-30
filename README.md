@@ -11,7 +11,7 @@ MySQL 8.0
 Redis
 
 ## 目录结构
-
+```
 student-organization
     ├── README.md
     ├── doc
@@ -88,7 +88,7 @@ student-organization
     │                   └── zjone
     │                       └── StudentOrganizationApplicationTests.java
 
-
+```
 ## 数据库表设计
 
 | **字段名**    | **数据类型**  | **描述**                     |
