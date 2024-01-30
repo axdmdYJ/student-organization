@@ -548,7 +548,7 @@ Response:
 
 - 样例2
 
-Header：管理员token
+Header：学生token
 Param：
 
 ```json
