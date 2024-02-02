@@ -108,6 +108,8 @@ student-organization
 | deletion_time | datetime      | 注销时间                     |
 | create_time   | datetime      | 创建时间                     |
 | update_time   | datetime      | 修改时间                     |
+| ------------- | ------------- | ---------------------------- |
+
 
 解决SpringBoot3.0和mp冲突问题
 ```java
