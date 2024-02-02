@@ -100,11 +100,6 @@ public class UserDO implements Serializable {
     @TableField( fill = FieldFill.UPDATE)
     private Date updateTime;
 
-    /**
-     * 删除标识 0：未删除 1：已删除
-     */
-    @TableField( fill = FieldFill.INSERT)
-    private Integer delFlag;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

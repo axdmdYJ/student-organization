@@ -16,7 +16,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createTime", Date::new, Date.class);
-        this.strictInsertFill(metaObject, "delFlag", () -> 0, Integer.class);
         this.strictInsertFill(metaObject, "role", () -> 0, Integer.class);
     }
     @Override
