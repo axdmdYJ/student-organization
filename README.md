@@ -108,8 +108,6 @@ student-organization
 | deletion_time | datetime      | 注销时间                     |
 | create_time   | datetime      | 创建时间                     |
 | update_time   | datetime      | 修改时间                     |
-| del_flag      | tinyint(1)    | 删除标识 0: 未删除 1: 已删除 |
-
 解决SpringBoot3.0和mp冲突问题
 
 ```java
