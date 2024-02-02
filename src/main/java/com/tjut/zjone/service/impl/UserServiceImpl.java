@@ -19,6 +19,7 @@ import com.tjut.zjone.common.convention.result.Results;
 import com.tjut.zjone.common.enums.RoleEnum;
 import com.tjut.zjone.common.enums.UserErrorCodeEnum;
 import com.tjut.zjone.dao.entity.UserDO;
+import com.tjut.zjone.dao.entity.WillInfo;
 import com.tjut.zjone.dto.req.AdminUpdateDTO;
 import com.tjut.zjone.dto.req.UserPutRegReqDTO;
 import com.tjut.zjone.dto.req.UserPwdResetReqDTO;
@@ -130,6 +131,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         map.put("isDispensing", requestParam.getIsDispensing().toString());
         map.put("phone",requestParam.getPhone());
         map.put("wills",JSON.toJSONString(requestParam.getWills()));
+        UserDO user = BeanUtil.fillBeanWithMap(map, new UserDO(), true);
+        stringRedisTemplate.opsForValue().set("login_"+UserContext.getUsername(), JSON.toJSONString(user),30L,TimeUnit.MINUTES);
         // XGROUP CREATE stream.students g1 0 MKSTREAM
         stringRedisTemplate.opsForStream().add("stream.students", map);
         return;
@@ -181,7 +184,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
                             .className((String) value.get("className"))
                             .phone((String) value.get("phone"))
                             .isDispensing(Boolean.parseBoolean((String) value.get("isDispensing")))
-                            .wills((String) value.get("wills"))
+                            .wills((String) (value.get("wills")))
                             .build();
 //                    UserDO user = BeanUtil.fillBeanWithMap(value, new UserDO(), true);
 //                    baseMapper.update(user,queryWrapper);
@@ -238,13 +241,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     }
 
 
-        @Override
+    @Override
     public UserGetInfoRespDTO getInfo() {
+        String userJs = stringRedisTemplate.opsForValue().get("login_" + UserContext.getUsername());
+        UserGetInfoRespDTO userGetInfoRespDTO = JSON.parseObject(userJs, UserGetInfoRespDTO.class);
+        if (userGetInfoRespDTO != null) {
+            return userGetInfoRespDTO;
+        }
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, UserContext.getUsername());
         UserDO user = baseMapper.selectOne(queryWrapper);
-        return BeanUtil.copyProperties(user, UserGetInfoRespDTO.class);
+        UserGetInfoRespDTO responseDTO = BeanUtil.copyProperties(user, UserGetInfoRespDTO.class);
+        return responseDTO;
     }
+
 
     @Override
     public void updateStudent(AdminUpdateDTO requestParam) {
