@@ -11,3 +11,18 @@ spring:
     port: 6379
     host: localhost
     database: 1
+  # rabbitmq配置
+  rabbitmq:
+    host: localhost
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          multiplier: 2
+          max-attempts: 5
+          initial-interval: 1000ms
+          max-interval: 2000ms
+        acknowledge-mode: auto
+    port: 5672
+    virtual-host: /

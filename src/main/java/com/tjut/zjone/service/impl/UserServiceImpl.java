@@ -33,6 +33,7 @@ import com.tjut.zjone.util.FormatVerifyUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -61,6 +62,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     implements UserService {
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final RabbitTemplate rabbitTemplate;
 
     private static final String SALT = "salt";
     @Override
@@ -121,125 +124,137 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         // 2. 获取学生信息
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
                 .eq(UserDO::getUsername, UserContext.getUsername());
-        Map<Object, Object> map = new HashMap<>();
-        map.put("username", UserContext.getUsername());
-        map.put("studentID", requestParam.getStudentID());
-        map.put("qq", requestParam.getQq());
-        map.put("major", requestParam.getMajor());
-        map.put("name", requestParam.getName());
-        map.put("className", requestParam.getClassName());
-        map.put("isDispensing", requestParam.getIsDispensing().toString());
-        map.put("phone",requestParam.getPhone());
-        map.put("wills",JSON.toJSONString(requestParam.getWills()));
-        UserDO user = BeanUtil.fillBeanWithMap(map, new UserDO(), true);
-        stringRedisTemplate.opsForValue().set("login_"+UserContext.getUsername(), JSON.toJSONString(user),30L,TimeUnit.MINUTES);
-        // XGROUP CREATE stream.students g1 0 MKSTREAM
-        stringRedisTemplate.opsForStream().add("stream.students", map);
+        UserDO userDO = UserDO.builder()
+                .username(UserContext.getUsername())
+                .major(requestParam.getMajor())
+                .name(requestParam.getName())
+                .phone(requestParam.getPhone())
+                .isDispensing(requestParam.getIsDispensing())
+                .wills(JSON.toJSONString(requestParam.getWills()))
+                .qq(requestParam.getQq())
+                .className(requestParam.getClassName())
+                .studentID(requestParam.getStudentID())
+                .build();
+        rabbitTemplate.convertAndSend("student.que", userDO);
         return;
+//        Map<Object, Object> map = new HashMap<>();
+//        map.put("username", UserContext.getUsername());
+//        map.put("studentID", requestParam.getStudentID());
+//        map.put("qq", requestParam.getQq());
+//        map.put("major", requestParam.getMajor());
+//        map.put("name", requestParam.getName());
+//        map.put("className", requestParam.getClassName());
+//        map.put("isDispensing", requestParam.getIsDispensing().toString());
+//        map.put("phone",requestParam.getPhone());
+//        map.put("wills",JSON.toJSONString(requestParam.getWills()));
+//        UserDO user = BeanUtil.fillBeanWithMap(map, new UserDO(), true);
+//        stringRedisTemplate.opsForValue().set("login_"+UserContext.getUsername(), JSON.toJSONString(user),30L,TimeUnit.MINUTES);
+        // XGROUP CREATE stream.students g1 0 MKSTREAM
+//        stringRedisTemplate.opsForStream().add("stream.students", map);
     }
 
-    //=============================异步调用========================
-    private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
-
-    //在当前类初始化完毕后执行
-    @PostConstruct
-    private void init() {
-        //开启异步线程调用任务
-        SECKILL_ORDER_EXECUTOR.submit(new PutInfoHandler());
-    }
-
-    private class PutInfoHandler implements Runnable {
-
-        private static final String QUEUE_NAME = "stream.students";
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    // 1.获取消息队列中的报名信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 >
-                    //消费者名字应该配置yml文件中，这里写死
-                        List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2)),
-                            StreamOffset.create(QUEUE_NAME, ReadOffset.lastConsumed())
-                    );
-                    // 2.判断报名信息是否为空
-                    if (list == null || list.isEmpty()) {
-                        // 如果为null，说明没有消息，继续下一次循环
-                        continue;
-                    }
-
-                    // 解析数据，返回list是因为可能读取多个，这里我们读取一个
-                    // MapRecord 第一个 String 指的是 消息的ID，redis生成的
-                    MapRecord<String, Object, Object> record = list.get(0);
-                    Map<Object, Object> value = record.getValue();
-                    // 2. 获取学生信息
-                    LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                            .eq(UserDO::getUsername, value.get("username"));
-                    UserDO user = UserDO.builder()
-                            .studentID((String) value.get("studentID"))
-                            .qq((String) value.get("qq"))
-                            .major((String) value.get("major"))
-                            .name((String) value.get("name"))
-                            .className((String) value.get("className"))
-                            .phone((String) value.get("phone"))
-                            .isDispensing(Boolean.parseBoolean((String) value.get("isDispensing")))
-                            .wills((String) (value.get("wills")))
-                            .build();
+    //=============================Redis异步调用========================
+//    private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
+//
+//    //在当前类初始化完毕后执行
+//    @PostConstruct
+//    private void init() {
+//        //开启异步线程调用任务
+//        SECKILL_ORDER_EXECUTOR.submit(new PutInfoHandler());
+//    }
+//
+//    private class PutInfoHandler implements Runnable {
+//
+//        private static final String QUEUE_NAME = "stream.students";
+//
+//        @Override
+//        public void run() {
+//            while (true) {
+//                try {
+//                    // 1.获取消息队列中的报名信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 >
+//                    //消费者名字应该配置yml文件中，这里写死
+//                        List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+//                            Consumer.from("g1", "c1"),
+//                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2)),
+//                            StreamOffset.create(QUEUE_NAME, ReadOffset.lastConsumed())
+//                    );
+//                    // 2.判断报名信息是否为空
+//                    if (list == null || list.isEmpty()) {
+//                        // 如果为null，说明没有消息，继续下一次循环
+//                        continue;
+//                    }
+//
+//                    // 解析数据，返回list是因为可能读取多个，这里我们读取一个
+//                    // MapRecord 第一个 String 指的是 消息的ID，redis生成的
+//                    MapRecord<String, Object, Object> record = list.get(0);
+//                    Map<Object, Object> value = record.getValue();
+//                    // 2. 获取学生信息
+//                    LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+//                            .eq(UserDO::getUsername, value.get("username"));
+//                    UserDO user = UserDO.builder()
+//                            .studentID((String) value.get("studentID"))
+//                            .qq((String) value.get("qq"))
+//                            .major((String) value.get("major"))
+//                            .name((String) value.get("name"))
+//                            .className((String) value.get("className"))
+//                            .phone((String) value.get("phone"))
+//                            .isDispensing(Boolean.parseBoolean((String) value.get("isDispensing")))
+//                            .wills((String) (value.get("wills")))
+//                            .build();
+////                    UserDO user = BeanUtil.fillBeanWithMap(value, new UserDO(), true);
+////                    baseMapper.update(user,queryWrapper);
+//                    baseMapper.update(user, queryWrapper);
+//                    stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, "g1", record.getId());
+//                } catch (Exception e) {
+//                    //处理异常情况，pending-list中的消息
+//                    log.error("学生提交信息发生异常", e);
+//                    handlePendingList();
+//                }
+//            }
+//        }
+//
+//        //处理异常情况
+//        private void handlePendingList() {
+//            while (true) {
+//                try {
+//                    // 1.获取pending-list中的报名信息 XREADGROUP GROUP g1 c1 COUNT 1  STREAMS stream.orders 0
+//                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+//                            Consumer.from("g1", "c1"),
+//                            StreamReadOptions.empty().count(1),
+//                            StreamOffset.create(QUEUE_NAME, ReadOffset.from("0"))
+//                    );
+//                    // 2.判断报名信息是否为空
+//                    if (list == null || list.isEmpty()) {
+//                        // 如果为null，说明没有异常消息，结束循环
+//                        break;
+//                    }
+//                    // 解析数据
+//                    // 2. 获取学生信息
+//                    LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
+//                            .eq(UserDO::getUsername, UserContext.getUsername());
+//                    // 解析数据，返回list是因为可能读取多个，这里我们读取一个
+//                    // MapRecord 第一个 String 指的是 消息的ID，redis生成的
+//                    MapRecord<String, Object, Object> record = list.get(0);
+//                    Map<Object, Object> value = record.getValue();
 //                    UserDO user = BeanUtil.fillBeanWithMap(value, new UserDO(), true);
 //                    baseMapper.update(user,queryWrapper);
-                    baseMapper.update(user, queryWrapper);
-                    stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, "g1", record.getId());
-                } catch (Exception e) {
-                    //处理异常情况，pending-list中的消息
-                    log.error("学生提交信息发生异常", e);
-                    handlePendingList();
-                }
-            }
-        }
-
-        //处理异常情况
-        private void handlePendingList() {
-            while (true) {
-                try {
-                    // 1.获取pending-list中的报名信息 XREADGROUP GROUP g1 c1 COUNT 1  STREAMS stream.orders 0
-                    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamReadOptions.empty().count(1),
-                            StreamOffset.create(QUEUE_NAME, ReadOffset.from("0"))
-                    );
-                    // 2.判断报名信息是否为空
-                    if (list == null || list.isEmpty()) {
-                        // 如果为null，说明没有异常消息，结束循环
-                        break;
-                    }
-                    // 解析数据
-                    // 2. 获取学生信息
-                    LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                            .eq(UserDO::getUsername, UserContext.getUsername());
-                    // 解析数据，返回list是因为可能读取多个，这里我们读取一个
-                    // MapRecord 第一个 String 指的是 消息的ID，redis生成的
-                    MapRecord<String, Object, Object> record = list.get(0);
-                    Map<Object, Object> value = record.getValue();
-                    UserDO user = BeanUtil.fillBeanWithMap(value, new UserDO(), true);
-                    baseMapper.update(user,queryWrapper);
-                    // 4.确认消息 XACK
-                    stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, "g1", record.getId());
-                } catch (Exception e) {
-//                    抛出异常，又会进入下一次循环，直到 pending-list 中没有异常消息。不需要递归
-                    log.error("处理pending-list异常", e);
-                    try {
-                        //防止太频繁，睡一下
-                        Thread.sleep(20);
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        }
-
-    }
-
+//                    // 4.确认消息 XACK
+//                    stringRedisTemplate.opsForStream().acknowledge(QUEUE_NAME, "g1", record.getId());
+//                } catch (Exception e) {
+////                    抛出异常，又会进入下一次循环，直到 pending-list 中没有异常消息。不需要递归
+//                    log.error("处理pending-list异常", e);
+//                    try {
+//                        //防止太频繁，睡一下
+//                        Thread.sleep(20);
+//                    } catch (InterruptedException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+//            }
+//        }
+//
+//    }
+//
 
     @Override
     public UserGetInfoRespDTO getInfo() {
