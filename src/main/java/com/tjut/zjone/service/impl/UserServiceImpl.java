@@ -27,6 +27,7 @@ import com.tjut.zjone.dto.resp.AdminGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserGetInfoRespDTO;
 import com.tjut.zjone.dto.resp.UserLoginRespDTO;
 import com.tjut.zjone.dto.resp.UserPageRespDTO;
+import com.tjut.zjone.mq.producer.StudentPutInfoProducer;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
 import com.tjut.zjone.util.FormatVerifyUtil;
@@ -63,6 +64,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final StudentPutInfoProducer studentPutInfoProducer;
     private final RabbitTemplate rabbitTemplate;
 
     private static final String SALT = "salt";
@@ -135,7 +137,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
                 .className(requestParam.getClassName())
                 .studentID(requestParam.getStudentID())
                 .build();
-        rabbitTemplate.convertAndSend("student.que", userDO);
+        studentPutInfoProducer.send(userDO);
         return;
 //        Map<Object, Object> map = new HashMap<>();
 //        map.put("username", UserContext.getUsername());

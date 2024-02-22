@@ -38,7 +38,6 @@ public class UserTransmitFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         String requestURI = httpServletRequest.getRequestURI();
         if (!IGNORE_URI.contains(requestURI)){
-            if (!(Objects.equals(requestURI,"/api/short-link/admin/v1/user/login"))){
                 String token = httpServletRequest.getHeader("token");
                 //woken不能为空
                 if (!StrUtil.isNotBlank(token)){
@@ -58,7 +57,6 @@ public class UserTransmitFilter implements Filter {
                 }
                     UserInfoDTO userInfoDTO = JSON.parseObject(userInfoJsonStr.toString(), UserInfoDTO.class);
                     UserContext.setUser(userInfoDTO);
-            }
         }
         try {
          filterChain.doFilter(servletRequest, servletResponse);

@@ -17,12 +17,14 @@ spring:
     username: guest
     password: guest
     listener:
+      retry:
+        enabled: true # 开启消费者失败重试
+        initial-interval: 1000ms # 初识的失败等待时长为1秒
+        multiplier: 1 # 失败的等待时长倍数，下次等待时长 = multiplier * last-interval
+        max-attempts: 3 # 最大重试次数
+        stateless: true # true无状态；false有状态。如果业务中包含事务，这里改为false
       simple:
-        retry:
-          multiplier: 2
-          max-attempts: 5
-          initial-interval: 1000ms
-          max-interval: 2000ms
-        acknowledge-mode: auto
+        acknowledge-mode: auto # 消费者确认机制
+
     port: 5672
     virtual-host: /
