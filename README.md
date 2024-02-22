@@ -4,7 +4,7 @@
 - port:8008
 
 ## 环境依赖
-
+RabbitMQ
 SpringBoot 3
 MyBatis Plus 3.5
 MySQL 8.0
