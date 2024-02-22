@@ -13,7 +13,7 @@ Redis
 ## 目录结构
 ```
 student-organization
-    ├── README.md
+├── README.md
 ├── doc
 │   └── stu_org_db.sql
 ├── pom.xml
