@@ -7,14 +7,14 @@ import java.util.Optional;
  */
 public final class UserContext {
 
-    private static final ThreadLocal<UserInfoDTO> USER_THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<UserInfo> USER_THREAD_LOCAL = new ThreadLocal<>();
 
     /**
      * 设置用户至上下文
      *
      * @param user 用户详情信息
      */
-    public static void setUser(UserInfoDTO user) {
+    public static void setUser(UserInfo user) {
         USER_THREAD_LOCAL.set(user);
     }
     /**
@@ -23,8 +23,8 @@ public final class UserContext {
      * @return 用户名称
      */
     public static String getUsername() {
-        UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
-        return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getUsername).orElse(null);
+        UserInfo userInfoDTO = USER_THREAD_LOCAL.get();
+        return Optional.ofNullable(userInfoDTO).map(UserInfo::getUsername).orElse(null);
     }
 
     /**
@@ -33,8 +33,8 @@ public final class UserContext {
      * @return 用户角色
      */
     public static Integer getRole() {
-        UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
-        return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getRole).orElse(null);
+        UserInfo userInfoDTO = USER_THREAD_LOCAL.get();
+        return Optional.ofNullable(userInfoDTO).map(UserInfo::getRole).orElse(null);
     }
     /**
      * 清理用户上下文

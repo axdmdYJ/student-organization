@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tjut.zjone.common.biz.user.UserContext;
+import com.tjut.zjone.common.biz.user.UserSessionHelper;
 import com.tjut.zjone.common.convention.exception.ClientException;
 import com.tjut.zjone.common.convention.exception.ServiceException;
 import com.tjut.zjone.common.convention.result.Result;
@@ -31,6 +32,7 @@ import com.tjut.zjone.mq.producer.StudentPutInfoProducer;
 import com.tjut.zjone.service.UserService;
 import com.tjut.zjone.dao.mapper.UserMapper;
 import com.tjut.zjone.util.FormatVerifyUtil;
+import com.tjut.zjone.util.RedisClient;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -55,26 +57,26 @@ import static com.tjut.zjone.common.constant.RoleConstant.B_ADMIN;
 import static com.tjut.zjone.common.constant.RoleConstant.C_STUDENT;
 
 /**
-* @description 针对表【t_user】的数据库操作Service实现
-*/
+ * @description 针对表【t_user】的数据库操作Service实现
+ */
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
-    implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements UserService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
     private final StudentPutInfoProducer studentPutInfoProducer;
     private final RabbitTemplate rabbitTemplate;
+    private final UserSessionHelper userSessionHelper;
 
     private static final String SALT = "salt";
+
     @Override
     public void userRegister(String username, String password) {
-        //1. 格式校验
+        // 1. 格式校验
         formatCheck(username, password);
         // 1.3 账户不能重复
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getUsername, username);
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, username);
         long count = baseMapper.selectCount(queryWrapper);
         if (count > 0) {
             throw new ClientException(UserErrorCodeEnum.USER_NAME_REPETITION);
@@ -82,10 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
         // 3. 插入数据
-        UserDO user = UserDO.builder()
-                .username(username)
-                .password(encryptPassword)
-                .build();
+        UserDO user = UserDO.builder().username(username).password(encryptPassword).build();
         try {
             baseMapper.insert(user);
         } catch (DuplicateKeyException e) {
@@ -95,26 +94,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
 
     @Override
     public UserLoginRespDTO userLogin(String username, String password) {
-        //1. 格式校验
+        // 1. 格式校验
         formatCheck(username, password);
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
         // 3. 查询用户是否存在
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getUsername, username);
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, username);
         UserDO user = baseMapper.selectOne(queryWrapper);
         // 3.1 用户不存在
         if (user == null) {
             throw new ClientException(UserErrorCodeEnum.USER_NULL);
         }
         // 3.2 存在则判断密码是否正确
-        if (!encryptPassword.equals(user.getPassword())){
+        if (!encryptPassword.equals(user.getPassword())) {
             throw new ClientException(UserErrorCodeEnum.USER_PASSWORD_ERROR);
         }
-        //3. 缓存处理，返回token
-        String token = UUID.randomUUID().toString();
-        stringRedisTemplate.opsForValue().set("login_"+token , JSON.toJSONString(user));
-        stringRedisTemplate.expire("login_"+token,30L, TimeUnit.MINUTES);
+        // 4. 缓存处理，返回token
+//        String token = UUID.randomUUID().toString();
+//        stringRedisTemplate.opsForValue().set("login_" + token, JSON.toJSONString(user));
+//        stringRedisTemplate.expire("login_" + token, 30L, TimeUnit.MINUTES);
+        String token = userSessionHelper.genSession(username);
         UserLoginRespDTO userLoginRespDTO = new UserLoginRespDTO(token);
         return userLoginRespDTO;
     }
@@ -124,19 +123,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         // 1.验证格式,格式错误，抛出对应异常
         UserReqInformationFormatVerify(requestParam);
         // 2. 获取学生信息
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getUsername, UserContext.getUsername());
-        UserDO userDO = UserDO.builder()
-                .username(UserContext.getUsername())
-                .major(requestParam.getMajor())
-                .name(requestParam.getName())
-                .phone(requestParam.getPhone())
-                .isDispensing(requestParam.getIsDispensing())
-                .wills(JSON.toJSONString(requestParam.getWills()))
-                .qq(requestParam.getQq())
-                .className(requestParam.getClassName())
-                .studentID(requestParam.getStudentID())
-                .build();
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, UserContext.getUsername());
+        UserDO userDO = UserDO.builder().username(UserContext.getUsername()).major(requestParam.getMajor()).name(requestParam.getName()).phone(requestParam.getPhone()).isDispensing(requestParam.getIsDispensing()).wills(JSON.toJSONString(requestParam.getWills())).qq(requestParam.getQq()).className(requestParam.getClassName()).studentID(requestParam.getStudentID()).build();
         studentPutInfoProducer.send(userDO);
         return;
 //        Map<Object, Object> map = new HashMap<>();
@@ -265,8 +253,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         if (userGetInfoRespDTO != null) {
             return userGetInfoRespDTO;
         }
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getUsername, UserContext.getUsername());
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, UserContext.getUsername());
         UserDO user = baseMapper.selectOne(queryWrapper);
         UserGetInfoRespDTO responseDTO = BeanUtil.copyProperties(user, UserGetInfoRespDTO.class);
         return responseDTO;
@@ -276,26 +263,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     @Override
     public void updateStudent(AdminUpdateDTO requestParam) {
         //1. 鉴权
-        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+        if (UserContext.getRole() != RoleEnum.ADMIN.role) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
         }
         //2. 验证格式,格式错误，抛出对应异常
         AdminReqInformationFormatVerify(requestParam);
         //3. 通过学号获取学生信息
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getStudentID, requestParam.getStudentID());
-        UserDO user = UserDO.builder()
-                .studentID(requestParam.getStudentID())
-                .qq(requestParam.getQq())
-                .major(requestParam.getMajor())
-                .name(requestParam.getName())
-                .className(requestParam.getClassName())
-                .isDispensing(requestParam.getIsDispensing())
-                .phone(requestParam.getPhone())
-                .wills(JSON.toJSONString(requestParam.getWills()))
-                .build();
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getStudentID, requestParam.getStudentID());
+        UserDO user = UserDO.builder().studentID(requestParam.getStudentID()).qq(requestParam.getQq()).major(requestParam.getMajor()).name(requestParam.getName()).className(requestParam.getClassName()).isDispensing(requestParam.getIsDispensing()).phone(requestParam.getPhone()).wills(JSON.toJSONString(requestParam.getWills())).build();
         try {
-            baseMapper.update(user,queryWrapper);
+            baseMapper.update(user, queryWrapper);
         } catch (DuplicateKeyException e) {
             throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
         }
@@ -304,7 +281,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     @Override
     public void adminRest(UserPwdResetReqDTO requestParam) {
         // 1. 用户权限校验
-        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+        if (UserContext.getRole() != RoleEnum.ADMIN.role) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
         }
         // 2. 对新密码进行验证
@@ -319,13 +296,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
         //2.2 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + requestParam.getNewPassword()).getBytes());
         // 3. 根据学号查询用户
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getStudentID, requestParam.getStudentID());
-        UserDO user = UserDO.builder()
-                .password(encryptPassword)
-                .build();
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getStudentID, requestParam.getStudentID());
+        UserDO user = UserDO.builder().password(encryptPassword).build();
         try {
-            baseMapper.update(user,queryWrapper);
+            baseMapper.update(user, queryWrapper);
         } catch (DuplicateKeyException e) {
             throw new ServiceException(UserErrorCodeEnum.USER_PUT_REG_FAIL);
         }
@@ -333,14 +307,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
 
     @Override
     public AdminGetInfoRespDTO adminGetInfo() {
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getUsername, UserContext.getUsername());
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getUsername, UserContext.getUsername());
         UserDO user = baseMapper.selectOne(queryWrapper);
         AdminGetInfoRespDTO respDTO = new AdminGetInfoRespDTO();
-        if (user.getRole().equals(RoleEnum.ADMIN.role)){
+        if (user.getRole().equals(RoleEnum.ADMIN.role)) {
             respDTO.setRole(B_ADMIN);
         }
-        if (!user.getRole().equals(RoleEnum.ADMIN.role)){
+        if (!user.getRole().equals(RoleEnum.ADMIN.role)) {
             respDTO.setRole(C_STUDENT);
         }
         respDTO.setUsername(UserContext.getUsername());
@@ -350,18 +323,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
     @Override
     public Result<IPage<UserPageRespDTO>> userPage(Integer pageNum, Integer pageSize, String keyword) {
         // 1. 用户权限校验
-        if (UserContext.getRole() != RoleEnum.ADMIN.role){
+        if (UserContext.getRole() != RoleEnum.ADMIN.role) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_NO_AUTH);
         }
         // 2. 构建分页对象
         Page<UserDO> userPage = new Page<>(pageNum, pageSize);
 
         // 3. 构建查询条件
-        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class)
-                .eq(UserDO::getRole, 0)
-                .like(StringUtils.isNotBlank(keyword), UserDO::getName, keyword)
-                .or()
-                .like(StringUtils.isNotBlank(keyword), UserDO::getStudentID, keyword);
+        LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.lambdaQuery(UserDO.class).eq(UserDO::getRole, 0).like(StringUtils.isNotBlank(keyword), UserDO::getName, keyword).or().like(StringUtils.isNotBlank(keyword), UserDO::getStudentID, keyword);
+
         // 3. 分页处理
         IPage<UserDO> page = baseMapper.selectPage(userPage, queryWrapper);
         return Results.success(page.convert(each -> BeanUtil.toBean(each, UserPageRespDTO.class)));
@@ -387,32 +357,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO>
             throw new ClientException(UserErrorCodeEnum.USER_NAME_PATTERN_ERROR);
         }
     }
-    private static void UserReqInformationFormatVerify(UserPutRegReqDTO requestParam){
-        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())){
+
+    private static void UserReqInformationFormatVerify(UserPutRegReqDTO requestParam) {
+        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_ID_ERROR);
         }
-        if (!FormatVerifyUtil.isValidName(requestParam.getName())){
+        if (!FormatVerifyUtil.isValidName(requestParam.getName())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_NAME_ERROR);
         }
-        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())){
+        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_QQ_ERROR);
         }
-        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())){
+        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_PHONE_ERROR);
         }
     }
 
-    private static void AdminReqInformationFormatVerify(AdminUpdateDTO requestParam){
-        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())){
+    private static void AdminReqInformationFormatVerify(AdminUpdateDTO requestParam) {
+        if (!FormatVerifyUtil.isValidStudentID(requestParam.getStudentID())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_ID_ERROR);
         }
-        if (!FormatVerifyUtil.isValidName(requestParam.getName())){
+        if (!FormatVerifyUtil.isValidName(requestParam.getName())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_NAME_ERROR);
         }
-        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())){
+        if (!FormatVerifyUtil.isValidQQ(requestParam.getQq())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_QQ_ERROR);
         }
-        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())){
+        if (!FormatVerifyUtil.isValidPhoneNumber(requestParam.getPhone())) {
             throw new ClientException(UserErrorCodeEnum.STUDENT_PHONE_ERROR);
         }
     }

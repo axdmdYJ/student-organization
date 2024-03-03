@@ -16,6 +16,7 @@ public class StudentPutInfoProducer {
     private final RabbitTemplate rabbitTemplate;
 
     public void send(UserDO userDO) {
+        // todo 发送失败
         // 将 UserDO 序列化为 JSON
         String jsonString = JSON.toJSONString(userDO);
 

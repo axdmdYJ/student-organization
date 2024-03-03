@@ -25,6 +25,11 @@ spring:
         stateless: true # true无状态；false有状态。如果业务中包含事务，这里改为false
       simple:
         acknowledge-mode: auto # 消费者确认机制
-
     port: 5672
     virtual-host: /
+
+sipc:
+  jwt:
+    issuer: sipc # 签发者
+    secret: hello_world # 签名密钥
+    expire: 2592000000 # jwt的有效期，默认30天
