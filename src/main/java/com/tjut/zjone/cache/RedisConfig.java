@@ -1,12 +1,16 @@
-package com.tjut.zjone.config;
+package com.tjut.zjone.cache;
 
-import com.tjut.zjone.util.RedisClient;
+import com.tjut.zjone.cache.RedisClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+
+/**
+ * 自定义RedisTemplate
+ */
 @Configuration
 public class RedisConfig {
 

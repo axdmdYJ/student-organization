@@ -1,5 +1,6 @@
-package com.tjut.zjone.common.biz.user;
+package com.tjut.zjone.config;
 
+import com.tjut.zjone.common.biz.user.JwtInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

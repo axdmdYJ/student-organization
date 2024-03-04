@@ -7,7 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.tjut.zjone.util.JsonUtil;
 import com.tjut.zjone.util.MapUtils;
-import com.tjut.zjone.util.RedisClient;
+import com.tjut.zjone.cache.RedisClient;
 import com.tjut.zjone.util.SelfTraceIdGenerator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,6 @@ import java.util.Objects;
 /**
  * 使用jwt来存储用户token，则不需要后端来存储session了
  *
- * @author YiHui
- * @date 2022/12/5
  */
 @Slf4j
 @Component

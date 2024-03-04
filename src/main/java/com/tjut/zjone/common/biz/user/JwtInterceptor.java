@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * Jwt拦截器
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtInterceptor implements HandlerInterceptor {

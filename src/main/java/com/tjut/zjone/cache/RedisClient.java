@@ -1,10 +1,10 @@
-package com.tjut.zjone.util;
+package com.tjut.zjone.cache;
 
+import com.tjut.zjone.util.JsonUtil;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
