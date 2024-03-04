@@ -13,80 +13,90 @@ Redis
 ## 目录结构
 ```
 student-organization
-    ├── README.md
-    ├── doc
-    ├── pom.xml
-    ├── src
-    │   ├── main
-    │   │   ├── java
-    │   │   │   └── com
-    │   │   │       └── tjut
-    │   │   │           └── zjone
-    │   │   │               ├── StudentOrganizationApplication.java
-    │   │   │               ├── common
-    │   │   │               │   ├── biz
-    │   │   │               │   │   └── user
-    │   │   │               │   │       ├── UserContext.java
-    │   │   │               │   │       ├── UserInfoDTO.java
-    │   │   │               │   │       └── UserTransmitFilter.java
-    │   │   │               │   ├── constant
-    │   │   │               │   │   └── RoleConstant.java
-    │   │   │               │   ├── convention
-    │   │   │               │   │   ├── errorcode
-    │   │   │               │   │   │   ├── BaseErrorCode.java
-    │   │   │               │   │   │   └── IErrorCode.java
-    │   │   │               │   │   ├── exception
-    │   │   │               │   │   │   ├── AbstractException.java
-    │   │   │               │   │   │   ├── ClientException.java
-    │   │   │               │   │   │   ├── RemoteException.java
-    │   │   │               │   │   │   └── ServiceException.java
-    │   │   │               │   │   └── result
-    │   │   │               │   │       ├── Result.java
-    │   │   │               │   │       └── Results.java
-    │   │   │               │   ├── enums
-    │   │   │               │   │   ├── RoleEnum.java
-    │   │   │               │   │   └── UserErrorCodeEnum.java
-    │   │   │               │   └── web
-    │   │   │               │       └── GlobalExceptionHandler.java
-    │   │   │               ├── config
-    │   │   │               │   ├── MyMetaObjectHandler.java
-    │   │   │               │   └── MybatisPlusAutoConfiguration.java
-    │   │   │               ├── controller
-    │   │   │               │   └── UserController.java
-    │   │   │               ├── dao
-    │   │   │               │   ├── entity
-    │   │   │               │   │   ├── UserDO.java
-    │   │   │               │   │   └── WillInfo.java
-    │   │   │               │   └── mapper
-    │   │   │               │       └── UserMapper.java
-    │   │   │               ├── dto
-    │   │   │               │   ├── req
-    │   │   │               │   │   ├── AdminUpdateDTO.java
-    │   │   │               │   │   ├── UserLoginReqDTO.java
-    │   │   │               │   │   ├── UserPutRegReqDTO.java
-    │   │   │               │   │   ├── UserPwdResetReqDTO.java
-    │   │   │               │   │   └── UserRegisterReqDTO.java
-    │   │   │               │   └── resp
-    │   │   │               │       ├── AdminGetInfoRespDTO.java
-    │   │   │               │       ├── UserGetInfoRespDTO.java
-    │   │   │               │       ├── UserLoginRespDTO.java
-    │   │   │               │       └── UserPageRespDTO.java
-    │   │   │               ├── service
-    │   │   │               │   ├── UserService.java
-    │   │   │               │   └── impl
-    │   │   │               │       └── UserServiceImpl.java
-    │   │   │               └── util
-    │   │   │                   └── FormatVerifyUtil.java
-    │   │   └── resources
-    │   │       ├── application.yaml
-    │   │       └── mapper
-    │   │           └── UserMapper.xml
-    │   └── test
-    │       └── java
-    │           └── com
-    │               └── tjut
-    │                   └── zjone
-    │                       └── StudentOrganizationApplicationTests.java
+├── README.md
+├── doc
+│   └── stu_org_db.sql
+├── pom.xml
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── com
+│   │   │       └── tjut
+│   │   │           └── zjone
+│   │   │               ├── StudentOrganizationApplication.java
+│   │   │               ├── common
+│   │   │               │   ├── biz
+│   │   │               │   │   └── user
+│   │   │               │   │       ├── UserContext.java
+│   │   │               │   │       ├── UserInfoDTO.java
+│   │   │               │   │       └── UserTransmitFilter.java
+│   │   │               │   ├── constant
+│   │   │               │   │   └── RoleConstant.java
+│   │   │               │   ├── convention
+│   │   │               │   │   ├── errorcode
+│   │   │               │   │   │   ├── BaseErrorCode.java
+│   │   │               │   │   │   └── IErrorCode.java
+│   │   │               │   │   ├── exception
+│   │   │               │   │   │   ├── AbstractException.java
+│   │   │               │   │   │   ├── ClientException.java
+│   │   │               │   │   │   ├── RemoteException.java
+│   │   │               │   │   │   └── ServiceException.java
+│   │   │               │   │   └── result
+│   │   │               │   │       ├── Result.java
+│   │   │               │   │       └── Results.java
+│   │   │               │   ├── enums
+│   │   │               │   │   ├── RoleEnum.java
+│   │   │               │   │   └── UserErrorCodeEnum.java
+│   │   │               │   └── web
+│   │   │               │       └── GlobalExceptionHandler.java
+│   │   │               ├── config
+│   │   │               │   ├── MqConfig.java
+│   │   │               │   ├── MyMetaObjectHandler.java
+│   │   │               │   └── MybatisPlusAutoConfiguration.java
+│   │   │               ├── controller
+│   │   │               │   └── UserController.java
+│   │   │               ├── dao
+│   │   │               │   ├── entity
+│   │   │               │   │   ├── UserDO.java
+│   │   │               │   │   └── WillInfo.java
+│   │   │               │   └── mapper
+│   │   │               │       └── UserMapper.java
+│   │   │               ├── dto
+│   │   │               │   ├── req
+│   │   │               │   │   ├── AdminUpdateDTO.java
+│   │   │               │   │   ├── UserLoginReqDTO.java
+│   │   │               │   │   ├── UserPutRegReqDTO.java
+│   │   │               │   │   ├── UserPwdResetReqDTO.java
+│   │   │               │   │   └── UserRegisterReqDTO.java
+│   │   │               │   └── resp
+│   │   │               │       ├── AdminGetInfoRespDTO.java
+│   │   │               │       ├── UserGetInfoRespDTO.java
+│   │   │               │       ├── UserLoginRespDTO.java
+│   │   │               │       └── UserPageRespDTO.java
+│   │   │               ├── mq
+│   │   │               │   ├── consumer
+│   │   │               │   │   └── StudentPutInfoConsumer.java
+│   │   │               │   ├── idempotent
+│   │   │               │   │   └── MessageQueueIdempotentHandler.java
+│   │   │               │   └── producer
+│   │   │               │       └── StudentPutInfoProducer.java
+│   │   │               ├── service
+│   │   │               │   ├── UserService.java
+│   │   │               │   └── impl
+│   │   │               │       └── UserServiceImpl.java
+│   │   │               └── util
+│   │   │                   └── FormatVerifyUtil.java
+│   │   └── resources
+│   │       ├── application.yaml
+│   │       └── mapper
+│   │           └── UserMapper.xml
+│   └── test
+│       └── java
+│           └── com
+│               └── tjut
+│                   └── zjone
+│                       └── StudentOrganizationApplicationTests.java
+
 
 ```
 ## 数据库表设计
